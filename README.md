@@ -1,50 +1,85 @@
-# Welcome to your Expo app 👋
+# ⏰ Alarm App (React Native + TypeScript)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A simple mobile alarm application built using **React Native with TypeScript** as a learning project to understand the basics of mobile app development.
 
-## Get started
+This project was created as a **trial/practice app** and focuses on learning how modern mobile applications can be developed with the help of **AI-assisted coding tools**.
+
+
+## Project Description
+
+This is a basic alarm mobile application developed using React Native.
+The goal of this project is not to build a production-ready application, but to:
+
+* learn the fundamentals of mobile app development,
+* understand React Native with TypeScript,
+* experiment with Expo for quick UI preview,
+* and explore how AI tools can be used as coding assistants during development.
+
+The UI and functionality were tested using **Expo Go** as a temporary preview environment.
+
+
+## Technologies Used
+
+* **React Native**
+* **TypeScript**
+* **Expo**
+* **Expo Go** (for live preview and testing)
+* **Visual Studio** (IDE)
+
+
+## Use of AI Assistance
+
+The initial reference code and structure for this project were generated with the help of **Claude (AI assistant)**.
+
+The generated code was used as a learning reference and starting point.
+I modified and studied the code to better understand how different components and logic work in a React Native application.
+
+This project reflects my learning approach in the current era of AI-assisted development.
+
+
+## Purpose of the Project
+
+This project was created to:
+
+* learn the basics of mobile app development,
+* understand React Native project structure,
+* practice TypeScript in a real application,
+* explore how AI can support and speed up the learning process.
+
+
+## How to Run the Project
 
 1. Install dependencies
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Start the Expo development server
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Open the **Expo Go** app on your mobile device and scan the QR code to preview the application.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-## Join the community
+## Features (Basic)
 
-Join our community of developers creating universal apps.
+* Simple alarm interface
+* Basic alarm setup and UI
+* Mobile preview using Expo Go
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*(Feature set is intentionally minimal, as this is a learning project.)*
+
+
+## Disclaimer
+
+This project uses AI-generated code as a learning reference.
+The goal is educational and exploratory, not commercial use.
+
+
+## Author
+
+**Supra Pradhan**
+
