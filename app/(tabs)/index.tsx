@@ -1,98 +1,301 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  Platform,
+  Alert,
+  FlatList,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import * as Notifications from "expo-notifications";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+interface Alarm {
+  id: string;
+  time: string;
+  active: boolean;
+  date: Date;
+}
 
-export default function HomeScreen() {
+export default function AlarmsScreen() {
+  const [alarms, setAlarms] = useState<Alarm[]>([]);
+  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+
+  // When user picks a time
+  const onTimeChange = (event: any, selected?: Date) => {
+    setShowPicker(Platform.OS === "ios"); // Keep picker open on iOS
+    if (selected) {
+      setSelectedTime(selected);
+    }
+  };
+
+  // Schedule the alarm
+  const scheduleAlarm = async () => {
+    const now = new Date();
+    let alarmTime = new Date(selectedTime);
+
+    // Set alarm for today
+    alarmTime.setFullYear(now.getFullYear());
+    alarmTime.setMonth(now.getMonth());
+    alarmTime.setDate(now.getDate());
+
+    // If time has passed today, set for tomorrow
+    if (alarmTime <= now) {
+      alarmTime.setDate(alarmTime.getDate() + 1);
+    }
+
+    // Calculate seconds until alarm
+    const secondsUntilAlarm = Math.floor(
+      (alarmTime.getTime() - now.getTime()) / 1000,
+    );
+
+    if (secondsUntilAlarm < 0) {
+      Alert.alert("Error", "Please select a future time");
+      return;
+    }
+
+    try {
+      // Schedule notification
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "⏰ Alarm!",
+          body: "Time to wake up!",
+          sound: true,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: secondsUntilAlarm,
+          repeats: false,
+        },
+      });
+
+      // Add to alarm list
+      const newAlarm: Alarm = {
+        id: notificationId,
+        time: alarmTime.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        active: true,
+        date: alarmTime,
+      };
+
+      setAlarms([...alarms, newAlarm]);
+      Alert.alert("Alarm Set!", `Alarm will ring at ${newAlarm.time}`);
+      setShowPicker(false);
+    } catch (error) {
+      Alert.alert("Error", "Failed to set alarm");
+      console.error(error);
+    }
+  };
+
+  // Delete an alarm
+  const deleteAlarm = async (id: string) => {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(id);
+      setAlarms(alarms.filter((alarm) => alarm.id !== id));
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete alarm");
+    }
+  };
+
+  // Render each alarm in the list
+  const renderAlarm = ({ item }: { item: Alarm }) => (
+    <View style={styles.alarmItem}>
+      <View style={styles.alarmInfo}>
+        <Text style={styles.alarmTime}>{item.time}</Text>
+        <Text style={styles.alarmStatus}>
+          {item.active ? "✓ Active" : "✗ Inactive"}
+        </Text>
+      </View>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => deleteAlarm(item.id)}
+      >
+        <Text style={styles.deleteText}>Delete</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>⏰ Set Your Alarm</Text>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* Current selected time */}
+        <View style={styles.timeDisplay}>
+          <Text style={styles.timeText}>
+            Selected Time:{" "}
+            {selectedTime.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        </View>
+
+        {/* Button to show time picker */}
+        <View style={styles.buttonSpacing}>
+          <Button
+            title="Pick Time"
+            onPress={() => setShowPicker(true)}
+            color="#2196F3"
+          />
+        </View>
+
+        {/* Time Picker */}
+        {showPicker && (
+          <View style={styles.pickerContainer}>
+            <DateTimePicker
+              value={selectedTime}
+              mode="time"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onTimeChange}
+            />
+            {Platform.OS === "ios" && (
+              <View style={styles.buttonSpacing}>
+                <Button title="Done" onPress={() => setShowPicker(false)} />
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Set Alarm Button */}
+        <View style={styles.buttonSpacing}>
+          <Button title="Set Alarm" onPress={scheduleAlarm} color="#4CAF50" />
+        </View>
+
+        {/* List of Alarms */}
+        <Text style={styles.subtitle}>Your Alarms:</Text>
+        {alarms.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.noAlarms}>No alarms set yet</Text>
+            <Text style={styles.noAlarmsSubtext}>
+              Tap "Pick Time" to create your first alarm
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={alarms}
+            renderItem={renderAlarm}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            style={styles.alarmList}
+          />
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  content: {
+    padding: 20,
+    paddingTop: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 25,
+    color: "#333",
+  },
+  timeDisplay: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  timeText: {
+    fontSize: 22,
+    textAlign: "center",
+    color: "#2196F3",
+    fontWeight: "600",
+  },
+  buttonSpacing: {
+    marginBottom: 15,
+  },
+  pickerContainer: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 20,
+    elevation: 2,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 15,
+    color: "#333",
+  },
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  noAlarms: {
+    textAlign: "center",
+    color: "#999",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  noAlarmsSubtext: {
+    textAlign: "center",
+    color: "#bbb",
+    fontSize: 14,
+    marginTop: 8,
+  },
+  alarmList: {
+    marginBottom: 20,
+  },
+  alarmItem: {
+    backgroundColor: "#fff",
+    padding: 18,
+    borderRadius: 12,
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  alarmInfo: {
+    flex: 1,
+  },
+  alarmTime: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  alarmStatus: {
+    fontSize: 14,
+    color: "#4CAF50",
+    marginTop: 5,
+  },
+  deleteButton: {
+    backgroundColor: "#f44336",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  deleteText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 14,
   },
 });
